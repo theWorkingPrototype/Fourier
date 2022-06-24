@@ -1,19 +1,19 @@
 
 var svgData = {};
 let dropdown = document.getElementById('path');
-
+var saved = {};
 
 let newCount = 0;
 
 
 class four {
-  constructor(scale = 1, circles = 20) {
+  constructor(scale = 1, circles = 10) {
     this.makeCanvas();
     this.populateDropdown();
     this.numCircles = circles;
     this.circles = [];
     this.dt = {
-      sample : 0.01,
+      sample : 0.001,
       move : 0.001
     }
     this.loadSVG(svgData.note);
@@ -140,6 +140,7 @@ class four {
     if(!svg) return;
     this.running = false;
     this.svg = svg;
+    if(!saved[svg.id]) saved[svg.id] = {};
     this.svgSize = { width : parseInt(this.svg.getBBox().width), height : parseInt(this.svg.getBBox().width)};
   }
   normalise (point) {
@@ -150,7 +151,8 @@ class four {
     // theta = Math.floor(theta*100000) / 100000;
     let x = 0, y = 0;
     for(let t = 0; t <= 1; t += this.dt.sample) {
-      let cartPoint = this.svg.getPointAtLength(this.svg.getTotalLength() * t);
+      if(!saved[this.svg.id][t]) saved[this.svg.id][t] = this.svg.getPointAtLength(this.svg.getTotalLength() * t);
+      let cartPoint = {x : saved[this.svg.id][t].x, y : saved[this.svg.id][t].y};
       this.normalise(cartPoint);
       let polar = toPolar(cartPoint.x, cartPoint.y);
       let e = 2 * Math.PI * freq * ( -t );
