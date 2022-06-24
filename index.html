@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fourier</title>
+    <style>
+      a {
+        text-decoration: none;
+        color:aliceblue;
+      }
+      body {
+        overflow: hidden;
+        padding: 0px;
+        margin: 0px;
+      }
+      .back {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100vw;
+        height: 100vh;
+        background-color: #000;
+        z-index: -1;
+      }
+      canvas {
+        position: absolute;
+        top:0px;
+        left:0px;
+      }
+      .controls {
+        user-select: none;
+        cursor:default;
+        padding:2px 2px;
+        position: absolute;
+        left:20px;
+        bottom:20px;
+        min-width: 200px;
+        color: aliceblue;
+        background-color: rgba(100, 100, 100, 0.3);
+        z-index: 2;
+      }
+      .controls > div {
+        display: flex;
+        align-items: center;
+      }
+      .controls > div > span {
+        min-height: 1.3em;
+        padding: 0px;
+        min-width:2em;
+      }
+      .btn {
+        border-radius: 2px;
+        cursor: pointer;
+      }
+      .sticky {
+        margin: 2px;
+        flex-basis: 20%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-grow: 2;
+      }
+      .sticky-t {
+        margin: 2px;
+        flex-basis: 20%;
+        display: flex;
+        align-items: center;
+      }
+      .fill {
+        flex-basis: 80%
+      }
+      .small {
+        flex-basis: 10%;
+      }
+      .sticky:hover:not(.working, .selected) {
+        background:rgba(100, 100, 100, 0.1);
+      }
+      .working {
+        background:rgba(100, 100, 100, 0.2);
+      }
+      .selected {
+        background:rgba(100, 100, 100, 0.3);
+      }
+      .sticky:active {
+        background:rgba(100, 100, 100, 0.3) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <svg height="1" width="1">
+      <path id="note" d="M210.3,56.3l-80-24a8.2,8.2,0,0,0-7.1,1.3A8.1,8.1,0,0,0,120,40V148.3A47.4,47.4,0,0,0,88,136a48,48,0,1,0,48,48V98.8l69.7,20.9a8.2,8.2,0,0,0,7.1-1.3A8.1,8.1,0,0,0,216,112V64A8.1,8.1,0,0,0,210.3,56.3Z"/>
+      <path id="note2" d="M 0 0 C -19 -4 -10 22 1 2 L 1 -22 Q 14 -18 9 -4 C 17 -20 3 -18 1 -30 L 0 -30 L 0 0" />
+      <path id="infinity" d="M -10 0 Q -9 7 0 0 Q 9 -7 10 0 Q 9 7 0 0 Q -9 -7 -10 0" />
+      <path id="star" d="M 192.000 212.000 L 212.000 226.641 L 209.321 202.000 L 232.000 192.000 L 209.321 182.000 L 212.000 157.359 L 192.000 172.000 L 172.000 157.359 L 174.679 182.000 L 152.000 192.000 L 174.679 202.000 L 172.000 226.641 z"/>
+      <path id="star2" d="M -2 2 L -7 4 L -13 0 L -7 -4 L -2 -2 L -4 -7 L 0 -13 L 4 -7 L 2 -2 L 7 -4 L 13 0 L 7 4 L 2 2 L 4 7 L 0 13 L -4 7 L -2 2 M -2 0 A 1 1 0 0 0 2 0 A 1 1 0 0 0 -2 0" />
+      <path id="sword" d="M 4 8 L 10 1 L 13 0 L 12 3 L 5 9 C 6 10 6 11 7 10 C 7 11 8 12 7 12 A 1.42 1.42 0 0 0 6 13 A 5 5 0 0 0 4 10 Q 3.5 9.9 3.5 10.5 T 2 11.8 T 1.2 11 T 2.5 9.5 T 3 9 A 5 5 90 0 0 0 7 A 1.42 1.42 0 0 1 1 6 C 1 5 2 6 3 6 C 2 7 3 7 4 8 M 10 1" />
+      <path id="square" d="M -20 -20 H 20 V 20 H -20 Z" />
+      <path id="line" d="M 0 0 L 1 1" />
+    </svg>
+    <div class="back"></div>
+    <div class="controls">
+      <div> <span class="sticky-t">Arrows</span> <span class="btn sticky" onclick="if(f) f.changeCirclesDel(-2);">-2</span> <span class="sticky" id="circles">20</span> <span class="btn sticky" onclick="if(f) f.changeCirclesDel(+2);">+2</span> </div>
+      <div> <span class="sticky-t">Speed</span> <input class="fill" type="range" label="speed" onchange="if(f) f.changeSpeed(this);" name="speed" id="speed" min="0" max="5" step="0.05" value="0.5" ></div>
+      <div> <span class="btn working sticky small"><a target="_blank" href="https://yqnn.github.io/svg-path-editor/">Path</a></span> <input class=" sticky fill" type="text" label="text" placeholder='svg path (d=" ")' name="pathinput" id="pathinput"> <span class="btn sticky" onclick="if(f) f.savePath(this)">go</span></div>
+      <div> <a href="https://github.com/theWorkingPrototype/Fourier"><span class="sticky btn" style="width:20px; color:white">
+          <svg height="20" viewBox="0 0 16 16" width="20">
+              <path fill="#ffffff" fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+          </svg>
+        </span></a>
+        <label class="sticky-t" id="path-label" for="path">shape</label>
+        <select class=" sticky-t fill" onchange="f.setShape(this);" class="sticky-t fill" name="path" id="path" >
+          <!-- filled automatically -->
+        </select>
+      <span class="btn sticky small" onclick="if(f) f.reload(this)">↺</span>
+      </div>
+  </div>
+    <script defer src="script.js"></script>
+  </body>
+</html>
