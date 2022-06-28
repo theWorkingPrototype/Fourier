@@ -7,7 +7,7 @@ let newCount = 0;
 
 
 class four {
-  constructor(scale = 1, circles = 10) {
+  constructor(scale = 1, circles = 100) {
     this.makeCanvas();
     this.populateDropdown();
     this.numCircles = circles;
